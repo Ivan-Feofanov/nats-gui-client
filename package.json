@@ -1,0 +1,70 @@
+{
+  "name": "nats-gui-client",
+  "private": true,
+  "version": "0.0.1",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "electron electron/main.ts",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "dev": "vite",
+    "build": "npm run check && vite build",
+    "serve": "vite preview",
+    "electron": "wait-on tcp:3000 && tsc electron/* --outDir dist && cross-env IS_DEV=true electron .",
+    "electron:pack": "electron-builder --dir",
+    "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"npm run electron\"",
+    "electron:builder": "electron-builder -m -w",
+    "build:for:electron": "npm run check && cross-env ELECTRON=true vite build && tsc electron/* --outDir dist",
+    "app:build": "npm run build:for:electron && npm run electron:builder"
+  },
+  "build": {
+    "appId": "com.feofanov.me.nats-gui-client",
+    "productName": "NATS GUI Client",
+    "copyright": "Copyright © 2022 Ivan Feofanov",
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "win": {
+      "target": "portable"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist_electron"
+    }
+  },
+  "devDependencies": {
+    "@smui/layout-grid": "^6.0.0-beta.16",
+    "@smui/textfield": "^6.0.0-beta.16",
+    "@sveltejs/vite-plugin-svelte": "^1.0.0-next.30",
+    "@tsconfig/svelte": "^3.0.0",
+    "concurrently": "^7.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^19.0.4",
+    "electron-builder": "^23.0.3",
+    "eslint": "^8.18.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "nodemon": "^2.0.16",
+    "prettier": "^2.7.1",
+    "svelte": "^3.44.0",
+    "svelte-check": "^2.2.7",
+    "svelte-preprocess": "^4.9.8",
+    "tslib": "^2.3.1",
+    "typescript": "^4.7.4",
+    "vite": "^2.9.9",
+    "wait-on": "^6.0.1"
+  },
+  "dependencies": {
+    "@msgpack/msgpack": "^2.7.2",
+    "nats": "^2.7.1",
+    "svelte-jsoneditor": "^0.3.60",
+    "svelte-material-ui": "^6.0.0-beta.16"
+  }
+}
