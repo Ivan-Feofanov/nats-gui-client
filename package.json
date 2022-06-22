@@ -2,7 +2,7 @@
   "name": "nats-gui-client",
   "description": "Simple graphic UI NATS client for testing",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.3",
   "main": "dist/main.js",
   "author": {
     "name" : "Ivan Feofanov",
