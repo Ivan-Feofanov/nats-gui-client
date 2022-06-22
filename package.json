@@ -3,6 +3,11 @@
   "private": true,
   "version": "0.0.1",
   "main": "dist/main.js",
+  "author": {
+    "name" : "Ivan Feofanov",
+    "email" : "feofanov@gmail.com",
+    "url" : "https://feofanov.me/"
+  },
   "scripts": {
     "start": "electron electron/main.ts",
     "check": "svelte-check --tsconfig ./tsconfig.json",
@@ -12,20 +17,27 @@
     "electron": "wait-on tcp:3000 && tsc electron/* --outDir dist && cross-env IS_DEV=true electron .",
     "electron:pack": "electron-builder --dir",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"npm run electron\"",
-    "electron:builder": "electron-builder -m -w",
+    "electron:builder": "electron-builder -l -m -w",
     "build:for:electron": "npm run check && cross-env ELECTRON=true vite build && tsc electron/* --outDir dist",
-    "app:build": "npm run build:for:electron && npm run electron:builder"
+    "app:build": "npm run build:for:electron && npm run electron:builder",
+    "release": "electron-builder"
   },
   "build": {
-    "appId": "com.feofanov.me.nats-gui-client",
+    "appId": "me.feofanov.nats-gui-client",
     "productName": "NATS GUI Client",
     "copyright": "Copyright © 2022 Ivan Feofanov",
     "mac": {
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "publish": ["github"]
     },
     "win": {
       "target": "portable"
     },
+
+    "linux": {
+      "target": "deb"
+    },
+    "deb": {},
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
