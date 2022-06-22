@@ -3,12 +3,11 @@ on: push
 jobs:
   release:
     runs-on: ${{ matrix.os }}
-
+    env:
+      GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
     strategy:
       matrix:
-        # os: [macos-latest, ubuntu-latest, windows-latest]
         os: [macos-latest]
-
     steps:
     - uses: actions/checkout@v2       
     - uses: actions/setup-node@master
@@ -18,11 +17,3 @@ jobs:
       run: npm install
     - name: build
       run: npm run app:build
-    - name: release
-      run: run release
-      # uses: softprops/action-gh-release@v1
-      # if: startsWith(github.ref, 'refs/tags/')
-      # with:
-      #   files: "dist_electron/(*.exe,*.deb,*.zip,*.dmg)"
-      env:
-        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
