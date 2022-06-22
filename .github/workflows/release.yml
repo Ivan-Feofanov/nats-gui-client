@@ -15,5 +15,5 @@ jobs:
         node-version: 18
     - name: install dependencies
       run: npm install
-    - name: build
-      run: npm run app:build
+    - name: release
+      run: npm run release

@@ -20,7 +20,7 @@
     "electron:builder": "electron-builder -l -m -w",
     "build:for:electron": "npm run check && cross-env ELECTRON=true vite build && tsc electron/* --outDir dist",
     "app:build": "npm run build:for:electron && npm run electron:builder",
-    "release": "electron-builder"
+    "release": "npm run build:for:electron && npm run electron:builder"
   },
   "build": {
     "appId": "me.feofanov.nats-gui-client",
