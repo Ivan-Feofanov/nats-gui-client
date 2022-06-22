@@ -1,5 +1,6 @@
 {
   "name": "nats-gui-client",
+  "description": "Simple graphic UI NATS client for testing",
   "private": true,
   "version": "0.0.1",
   "main": "dist/main.js",
@@ -9,7 +10,7 @@
     "url" : "https://feofanov.me/"
   },
   "scripts": {
-    "start": "electron electron/main.ts",
+    "start": "npx nodemon -e ts --ignore 'dist/*' --exec \"npm run electron:dev\"",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "dev": "vite",
     "build": "npm run check && vite build",
@@ -17,10 +18,10 @@
     "electron": "wait-on tcp:3000 && tsc electron/* --outDir dist && cross-env IS_DEV=true electron .",
     "electron:pack": "electron-builder --dir",
     "electron:dev": "concurrently -k \"cross-env BROWSER=none npm run dev\" \"npm run electron\"",
-    "electron:builder": "electron-builder -l -m -w",
+    "electron:builder": "electron-builder -m -w -l",
     "build:for:electron": "npm run check && cross-env ELECTRON=true vite build && tsc electron/* --outDir dist",
     "app:build": "npm run build:for:electron && npm run electron:builder",
-    "release": "npm run build:for:electron && electron-builder"
+    "release": "npm run build:for:electron && electron-builder -m -w -l"
   },
   "build": {
     "appId": "me.feofanov.nats-gui-client",
@@ -28,19 +29,27 @@
     "copyright": "Copyright © 2022 Ivan Feofanov",
     "mac": {
       "category": "public.app-category.utilities",
-      "publish": ["github"]
+      "target": "dmg",
+      "icon": "src/icons/mac/icon.icns"
     },
     "win": {
-      "target": "portable"
+      "target": "portable",
+      "icon": "src/icons/win/icon.ico"
     },
-
     "linux": {
+      "category": "Development",
       "target": "deb"
     },
-    "deb": {},
+		"dmg": {
+			"writeUpdateInfo": false
+		},
+    "deb": {
+      "icon": "src/icons/png/"
+    },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "differentialPackage": false
     },
     "files": [
       "dist/**/*",

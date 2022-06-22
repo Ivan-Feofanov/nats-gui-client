@@ -10,7 +10,7 @@
 	let connected = false
 	let loading = false
 	let server = 'localhost:4222'
-	let endpoint = 'user.findCertifiedTutors'
+	let endpoint = ''
 
 	let content = {
 		text: '',
@@ -171,6 +171,3 @@
 		</div>
 	{/if}
 </main>
-
-<style>
-</style>
