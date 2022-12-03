@@ -1,21 +1,35 @@
 <script lang="ts">
-	import { JSONEditor } from 'svelte-jsoneditor'
-	import LayoutGrid, { Cell } from '@smui/layout-grid'
-	import Textfield from '@smui/textfield'
 	import Button, { Group, Label } from '@smui/button'
-	import HelperText from '@smui/textfield/helper-text'
 	import CircularProgress from '@smui/circular-progress'
+	import LayoutGrid, { Cell } from '@smui/layout-grid'
+	import Select, { Option } from '@smui/select'
+	import Textfield from '@smui/textfield'
+	import HelperText from '@smui/textfield/helper-text'
+	import { onMount } from 'svelte'
+	import { JSONEditor } from 'svelte-jsoneditor'
 
-	let data = ''
-	let connected = false
-	let loading = false
-	let server = 'localhost:4222'
-	let endpoint = ''
-
-	let content = {
-		text: '',
-		json: undefined
+	type Request = {
+		id: number
+		host: string
+		endpoint: string
+		payload: Object
 	}
+
+	let req: Request | undefined
+	let _req: Request | undefined = {
+		host: 'localhost:4222',
+		endpoint: 'get-data',
+		payload: { field: 'value' }
+	}
+
+	let _historyID: number | undefined = undefined
+
+	let data: string = ''
+	let connected: boolean = false
+	let loading: boolean = false
+	let reqHistory: Request[] = []
+
+	let content = { json: {} }
 
 	let state = {
 		connection: {
@@ -28,11 +42,22 @@
 		}
 	}
 
+	async function getHistory() {
+		let res = await window.electronAPI.getHistory()
+		reqHistory = res.map((item, index) => {
+			return { ...item, id: index }
+		})
+	}
+
+	onMount(async () => {
+		await getHistory()
+	})
+
 	async function connect() {
 		try {
 			loading = true
 			state.connection.error = false
-			await window.electronAPI.connectNATS(server)
+			await window.electronAPI.connectNATS(_req.host)
 			connected = true
 			loading = false
 		} catch (err) {
@@ -58,16 +83,15 @@
 	}
 
 	async function getData() {
-		data = ''
 		try {
 			loading = true
 			state.loadingData.error = false
-			let request: Object | null = content.json
+			let data: Object | null = content.json
 				? content.json
 				: content.text
 				? JSON.parse(content.text)
 				: null
-			let json = await window.electronAPI.getData(endpoint, request)
+			let json = await window.electronAPI.getData(_req.endpoint, data)
 			data = JSON.stringify(json, null, 2)
 			loading = false
 		} catch (err) {
@@ -75,11 +99,39 @@
 			state.loadingData.error = true
 			state.loadingData.message = err
 		}
+		await getHistory()
+	}
+
+	$: {
+		if (req && req.id !== _historyID) {
+			content = { json: req ? req.payload : {} }
+			_historyID = req.id
+		}
+	}
+	$: {
+		if (!req) {
+			break $
+		}
+		if (req) _req = req
 	}
 </script>
 
 <main>
 	<LayoutGrid>
+		<Cell span={12}>
+			<div>
+				<Select
+					key={(item) => `${item ? item.id : ''}`}
+					bind:value={req}
+					label="Requests history"
+					style="width:100%"
+				>
+					{#each reqHistory as item (item.id)}
+						<Option value={item}>{item.host}/{item.endpoint}</Option>
+					{/each}
+				</Select>
+			</div>
+		</Cell>
 		<Cell span={12}>
 			<Textfield
 				type="text"
@@ -87,7 +139,7 @@
 				style="width: 100%;"
 				helperLine$style="width: 100%;"
 				bind:invalid={state.connection.error}
-				bind:value={server}
+				bind:value={_req.host}
 				prefix="nats://"
 				label="NATS Server:"
 			>
@@ -124,7 +176,7 @@
 				style="width: 100%;"
 				helperLine$style="width: 100%;"
 				bind:invalid={state.loadingData.error}
-				bind:value={endpoint}
+				bind:value={_req.endpoint}
 				label="NATS Endpoint:"
 			>
 				<HelperText validationMsg slot="helper">
@@ -150,7 +202,7 @@
 					on:click={getData}
 					variant="raised"
 					style="flex-grow: 1;"
-					disabled={!connected}
+					disabled={!(connected && _req.endpoint)}
 				>
 					<Label>Send</Label>
 				</Button>

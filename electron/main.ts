@@ -1,18 +1,27 @@
-import * as path from 'path'
+import { decode, encode } from '@msgpack/msgpack'
 import { app, BrowserWindow, ipcMain } from 'electron'
 import { connect, Empty, NatsConnection } from 'nats'
-import { decode, encode } from '@msgpack/msgpack'
-
-const isDev = process.env.IS_DEV == 'true' ? true : false
+import * as path from 'path'
+const Store = require('electron-store')
+ 
+const isDev = process.env.IS_DEV === 'true' ? true : false
 
 let nc: NatsConnection | null = null
-
+const store = new Store()
+console.log(app.getPath('userData'))
 async function disconnectNATS() {
 	if (nc !== null && !nc.isClosed()) {
 		console.log(`disconnecting from: ${nc.info?.host}:${nc.info?.port}`)
 		await nc.close()
 		nc = null
 	}
+}
+
+const saveReqToHistory = (host: string, endpoint: string, payload: Object | null): void => {
+	const requests: Object[] = store.get('request_history') || []
+	requests.push({host, endpoint, payload})
+	store.set('request_history', requests)
+	console.log(requests)
 }
 
 function createWindow() {
@@ -39,17 +48,21 @@ function createWindow() {
 	}
 
 	// IPCs
+	ipcMain.removeHandler('get-history')
+	ipcMain.handle('get-history', _ => store.get('request_history'))
+
 	ipcMain.removeHandler('get-data')
 	ipcMain.handle(
 		'get-data',
 		async (_, endpoint: string, request: Object | null): Promise<unknown> => {
-			console.log(`getting data from: ${endpoint}`)
 			try {
 				if (nc === null || nc.isClosed()) {
 					throw Error('Connect to NATS server first')
 				}
+				saveReqToHistory(nc?.getServer(), endpoint, request)
 				const data = request ? encode([request]) : Empty
-				const response = await nc.request(endpoint, data, {
+				console.log(`getting data from: ${endpoint}`)
+					const response = await nc.request(endpoint, data, {
 					timeout: 100000
 				})
 				return decode(response.data)
